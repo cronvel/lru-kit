@@ -1,0 +1,42 @@
+{
+  "name": "lru-kit",
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "description": "Simple LRU.",
+  "main": "lib/lru-kit.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {},
+  "scripts": {
+    "test": "tea-time -R dot"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cronvel/lru-kit.git"
+  },
+  "keywords": [
+    "lru"
+  ],
+  "author": "Cédric Ronvel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cronvel/lru-kit/issues"
+  },
+  "config": {
+    "tea-time": {
+      "coverDir": [
+        "lib"
+      ]
+    }
+  },
+  "copyright": {
+    "title": "LRU Kit",
+    "years": [
+      2021
+    ],
+    "owner": "Cédric Ronvel"
+  }
+}
