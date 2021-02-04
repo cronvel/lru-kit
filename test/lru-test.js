@@ -126,6 +126,18 @@ describe( "LRU Buffer Map" , () => {
 		}
 	} ) ;
 
+	it( "Test double/float64 precision" , () => {
+		var i , key , value1 ,
+			lru = new lruKit.LRUBufferMap( [ 'float64' ] , null , 800000 , 100000 , 4 ) ;
+		
+		for ( i = 0 ; i < 100000 ; i ++ ) {
+			key = 'key_' + i ;
+			value1 = 1000000 * Math.random() ;
+			lru.set( key , value1 ) ;
+			expect( lru.get( key ) ).to.be.like( [ value1 ] ) ;
+		}
+	} ) ;
+
 	it( "Set and Get 1M times with no key collision and variable arguments" , () => {
 		var i , j , key , value , varArgs = new Array( 100 ) ,
 			lru = new lruKit.LRUBufferMap( [ 'float' ] , 'int32' , 800000 , 100000 , 4 ) ;
