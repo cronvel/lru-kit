@@ -31,6 +31,7 @@
 
 
 const lruKit = require( '..' ) ;
+const Promise = require( 'seventh' ) ;
 
 
 
@@ -106,6 +107,143 @@ describe( "LRU Map" , () => {
 		}
 
 		expect( lru.get( 'unique' ) ).to.be.undefined() ;
+	} ) ;
+} ) ;
+
+
+
+describe( "LRU Cache Map" , () => {
+
+	it( "Set and Get 1M times with no key collision" , () => {
+		var i , key , value ,
+			lru = new lruKit.LRUCacheMap( 1000 , 100000 , 4 ) ;
+		
+		for ( i = 0 ; i < 1000000 ; i ++ ) {
+			key = 'key_' + i ;
+			value = Math.floor( 1000000 * Math.random() ) ;
+			lru.set( key , value ) ;
+			expect( lru.get( key ) ).to.be( value ) ;
+		}
+	} ) ;
+
+	it( "Set and Get 1M times with some random key collisions" , () => {
+		var i , key , value ,
+			lru = new lruKit.LRUCacheMap( 1000 , 100000 , 4 ) ;
+		
+		for ( i = 0 ; i < 1000000 ; i ++ ) {
+			key = 'key_' + Math.floor( 10000 * Math.random() ) ;
+			value = Math.floor( 1000000 * Math.random() ) ;
+			lru.set( key , value ) ;
+			expect( lru.get( key ) ).to.be( value ) ;
+		}
+	} ) ;
+
+	it( "Key lifetime, with the refreshingGet option turned on" , () => {
+		var i , key , value ,
+			lru = new lruKit.LRUCacheMap( 1000 , 100000 , 4 , true ) ;
+		
+		lru.set( 'unique' , 'value' ) ;
+		expect( lru.get( 'unique' ) ).to.be( 'value' ) ;
+		
+		// 50k (same block)
+		for ( i = 0 ; i < 50000 ; i ++ ) {
+			key = 'key_r1_' + i ;
+			value = Math.floor( 1000000 * Math.random() ) ;
+			lru.set( key , value ) ;
+			expect( lru.get( key ) ).to.be( value ) ;
+		}
+
+		expect( lru.get( 'unique' ) ).to.be( 'value' ) ;
+
+		// another 100k (2nd block)
+		for ( i = 0 ; i < 100000 ; i ++ ) {
+			key = 'key_r2_' + i ;
+			value = Math.floor( 1000000 * Math.random() ) ;
+			lru.set( key , value ) ;
+			expect( lru.get( key ) ).to.be( value ) ;
+		}
+
+		expect( lru.get( 'unique' ) ).to.be( 'value' ) ;
+
+		// another 300k (4th block)
+		for ( i = 0 ; i < 300000 ; i ++ ) {
+			key = 'key_r3_' + i ;
+			value = Math.floor( 1000000 * Math.random() ) ;
+			lru.set( key , value ) ;
+			expect( lru.get( key ) ).to.be( value ) ;
+		}
+
+		expect( lru.get( 'unique' ) ).to.be( 'value' ) ;
+		
+		// another 400k (out of blocks!)
+		for ( i = 0 ; i < 400000 ; i ++ ) {
+			key = 'key_r4_' + i ;
+			value = Math.floor( 1000000 * Math.random() ) ;
+			lru.set( key , value ) ;
+			expect( lru.get( key ) ).to.be( value ) ;
+		}
+
+		expect( lru.get( 'unique' ) ).to.be.undefined() ;
+	} ) ;
+
+	it( "Key should expire after the given time" , async function() {
+		//this.timeout( 4000 ) ;
+
+		var i , key , value ,
+			lru = new lruKit.LRUCacheMap( 100 , 100000 , 4 ) ;
+		
+		lru.set( 'key' , 'value' ) ;
+		expect( lru.get( 'key' ) ).to.be( 'value' ) ;
+
+		await Promise.resolveTimeout( 75 ) ;
+		lru.set( 'key2' , 'value2' ) ;
+		expect( lru.get( 'key' ) ).to.be( 'value' ) ;
+		expect( lru.get( 'key2' ) ).to.be( 'value2' ) ;
+
+		await Promise.resolveTimeout( 75 ) ;
+		expect( lru.get( 'key' ) ).to.be( undefined ) ;
+		expect( lru.get( 'key2' ) ).to.be( 'value2' ) ;
+
+		await Promise.resolveTimeout( 75 ) ;
+		expect( lru.get( 'key' ) ).to.be( undefined ) ;
+		expect( lru.get( 'key2' ) ).to.be( undefined ) ;
+	} ) ;
+
+	it( "100 keys should expire after the given time" , async function() {
+		//this.timeout( 4000 ) ;
+
+		var i , key , value ,
+			map = new Map() ,
+			lru = new lruKit.LRUCacheMap( 100 , 100000 , 4 ) ;
+		
+		for ( i = 0 ; i < 100 ; i ++ ) {
+			key = 'key_' + i ;
+			value = Math.floor( 1000000 * Math.random() ) ;
+			map.set( key , value ) ;
+			lru.set( key , value ) ;
+		}
+		
+		for ( i = 0 ; i < 100 ; i ++ ) {
+			key = 'key_' + i ;
+			value = map.get( key ) ;
+			expect( lru.get( key ) ).to.be( value ) ;
+		}
+
+		await Promise.resolveTimeout( 75 ) ;
+		
+		for ( i = 0 ; i < 100 ; i ++ ) {
+			key = 'key_' + i ;
+			value = map.get( key ) ;
+			expect( lru.get( key ) ).to.be( value ) ;
+		}
+
+		await Promise.resolveTimeout( 75 ) ;
+		
+		for ( i = 0 ; i < 100 ; i ++ ) {
+			key = 'key_' + i ;
+			value = map.get( key ) ;
+			expect( lru.get( key ) ).to.be( undefined ) ;
+		}
 	} ) ;
 } ) ;
 
