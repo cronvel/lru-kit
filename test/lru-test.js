@@ -245,6 +245,52 @@ describe( "LRU Cache Map" , () => {
 			expect( lru.get( key ) ).to.be( undefined ) ;
 		}
 	} ) ;
+
+	it( ".keys()/.values()/.entries() and iterator" , async function() {
+		//this.timeout( 4000 ) ;
+
+		var i , key , value ,
+			lru = new lruKit.LRUCacheMap( 100 , 100000 , 4 ) ;
+		
+		lru.set( 'key' , 'value' ) ;
+		expect( lru.keys() ).to.equal( [ 'key' ] ) ;
+		expect( lru.values() ).to.equal( [ 'value' ] ) ;
+		expect( lru.entries() ).to.equal( [ [ 'key' , 'value' ] ] ) ;
+		expect( [ ... lru ] ).to.equal( [ [ 'key' , 'value' ] ] ) ;
+
+		await Promise.resolveTimeout( 75 ) ;
+		lru.set( 'key2' , 'value2' ) ;
+		expect( lru.keys() ).to.equal( [ 'key2' , 'key' ] ) ;
+		expect( lru.values() ).to.equal( [ 'value2' , 'value' ] ) ;
+		expect( lru.entries() ).to.equal( [ [ 'key2' , 'value2' ] , [ 'key' , 'value' ] ] ) ;
+		expect( [ ... lru ] ).to.equal( [ [ 'key2' , 'value2' ] , [ 'key' , 'value' ] ] ) ;
+
+		// Check that the keys are not duplicated
+		lru.set( 'key' , 'another value' ) ;
+		expect( lru.keys() ).to.equal( [ 'key2' , 'key' ] ) ;
+		expect( lru.values() ).to.equal( [ 'value2' , 'another value' ] ) ;
+		expect( lru.entries() ).to.equal( [ [ 'key2' , 'value2' ] , [ 'key' , 'another value' ] ] ) ;
+		expect( [ ... lru ] ).to.equal( [ [ 'key2' , 'value2' ] , [ 'key' , 'another value' ] ] ) ;
+
+		await Promise.resolveTimeout( 75 ) ;
+		lru.set( 'key2' , 'value2' ) ;
+		expect( lru.keys() ).to.equal( [ 'key2' , 'key' ] ) ;
+		expect( lru.values() ).to.equal( [ 'value2' , 'another value' ] ) ;
+		expect( lru.entries() ).to.equal( [ [ 'key2' , 'value2' ] , [ 'key' , 'another value' ] ] ) ;
+		expect( [ ... lru ] ).to.equal( [ [ 'key2' , 'value2' ] , [ 'key' , 'another value' ] ] ) ;
+
+		await Promise.resolveTimeout( 75 ) ;
+		expect( lru.keys() ).to.equal( [ 'key2' ] ) ;
+		expect( lru.values() ).to.equal( [ 'value2' ] ) ;
+		expect( lru.entries() ).to.equal( [ [ 'key2' , 'value2' ] ] ) ;
+		expect( [ ... lru ] ).to.equal( [ [ 'key2' , 'value2' ] ] ) ;
+
+		await Promise.resolveTimeout( 75 ) ;
+		expect( lru.keys() ).to.equal( [] ) ;
+		expect( lru.values() ).to.equal( [] ) ;
+		expect( lru.entries() ).to.equal( [] ) ;
+		expect( [ ... lru ] ).to.equal( [] ) ;
+	} ) ;
 } ) ;
 
 
