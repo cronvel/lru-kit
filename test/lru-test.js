@@ -186,7 +186,7 @@ describe( "LRU Cache Map" , () => {
 		expect( lru.get( 'unique' ) ).to.be.undefined() ;
 	} ) ;
 
-	it( "Key should expire after the given time" , async function() {
+	it( "Key should expire after the given time (also testing .getKeySector())" , async function() {
 		//this.timeout( 4000 ) ;
 
 		var i , key , value ,
@@ -194,19 +194,26 @@ describe( "LRU Cache Map" , () => {
 		
 		lru.set( 'key' , 'value' ) ;
 		expect( lru.get( 'key' ) ).to.be( 'value' ) ;
+		expect( lru.getKeySector( 'key' ) ).to.be( 0 ) ;
 
 		await Promise.resolveTimeout( 75 ) ;
 		lru.set( 'key2' , 'value2' ) ;
 		expect( lru.get( 'key' ) ).to.be( 'value' ) ;
 		expect( lru.get( 'key2' ) ).to.be( 'value2' ) ;
+		expect( lru.getKeySector( 'key' ) ).to.be( 2 ) ;
+		expect( lru.getKeySector( 'key2' ) ).to.be( 0 ) ;
 
 		await Promise.resolveTimeout( 75 ) ;
 		expect( lru.get( 'key' ) ).to.be( undefined ) ;
 		expect( lru.get( 'key2' ) ).to.be( 'value2' ) ;
+		expect( lru.getKeySector( 'key' ) ).to.be( -1 ) ;
+		expect( lru.getKeySector( 'key2' ) ).to.be( 2 ) ;
 
 		await Promise.resolveTimeout( 75 ) ;
 		expect( lru.get( 'key' ) ).to.be( undefined ) ;
 		expect( lru.get( 'key2' ) ).to.be( undefined ) ;
+		expect( lru.getKeySector( 'key' ) ).to.be( -1 ) ;
+		expect( lru.getKeySector( 'key2' ) ).to.be( -1 ) ;
 	} ) ;
 
 	it( "100 keys should expire after the given time" , async function() {
